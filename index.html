@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>画语星河 - 儿童画作智能解读</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero-card">
+      <p class="hero-badge">H5 Open Source Edition</p>
+      <h1>画语星河</h1>
+      <p>让孩子的每一笔，都被温柔看见</p>
+      <div class="hero-tags">
+        <span>拍照即用</span>
+        <span>AI 故事</span>
+        <span>教师建议</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>上传画作</h2>
+      <p class="hint">支持直接拍照，也支持从相册选择（模型配置由后端 .env 提供）</p>
+
+      <div class="actions">
+        <label class="btn btn-primary" for="cameraInput">拍照分析</label>
+        <input
+          id="cameraInput"
+          type="file"
+          accept="image/*"
+          capture="environment"
+        >
+
+        <label class="btn btn-secondary" for="albumInput">相册导入</label>
+        <input
+          id="albumInput"
+          type="file"
+          accept="image/*"
+        >
+      </div>
+    </section>
+
+    <section class="card preview-card" id="previewCard" hidden>
+      <h2>画作预览</h2>
+      <img id="previewImage" alt="已选择的画作">
+      <p id="imageInfo" class="hint"></p>
+
+      <button id="analyzeBtn" class="btn btn-primary btn-block" type="button">
+        开始智能解读
+      </button>
+      <p id="statusText" class="hint status-text"></p>
+    </section>
+
+    <section class="card result-card" id="resultCard" hidden>
+      <h2>解读结果</h2>
+
+      <div class="result-block">
+        <h3>画面观察</h3>
+        <p id="analysisDescription"></p>
+      </div>
+
+      <div class="result-block">
+        <h3>故事生成</h3>
+        <p id="storyTitle" class="story-title"></p>
+        <p id="storyContent"></p>
+      </div>
+
+      <div class="result-block">
+        <h3>关怀建议</h3>
+        <p id="psychOverall"></p>
+        <p id="psychAdvice"></p>
+      </div>
+    </section>
+  </main>
+
+  <div class="loading-overlay" id="loadingOverlay" hidden>
+    <div class="loading-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="loading-title">AI 分析中，请稍候</p>
+      <p class="loading-text" id="loadingText">正在准备分析...</p>
+    </div>
+  </div>
+
+  <script src="./js/app.js"></script>
+</body>
+</html>
