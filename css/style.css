@@ -186,11 +186,15 @@ input[type="file"] {
   position: fixed;
   inset: 0;
   z-index: 999;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   background: rgba(12, 18, 35, 0.42);
   backdrop-filter: blur(2px);
+}
+
+.loading-overlay.is-visible {
+  display: flex;
 }
 
 .loading-box {

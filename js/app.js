@@ -38,12 +38,14 @@
 
   function setAnalyzing(isAnalyzing) {
     analyzeBtn.disabled = isAnalyzing;
-    analyzeBtn.textContent = isAnalyzing ? 'AI 分析中，请稍候...' : '开始 AI 分析';
+    analyzeBtn.textContent = isAnalyzing ? 'AI 分析中，请稍候...' : '开始智能解读';
   }
 
   function showLoading(text = '正在准备分析...') {
     loadingText.textContent = text;
+    loadingOverlay.classList.add('is-visible');
     loadingOverlay.hidden = false;
+    loadingOverlay.setAttribute('aria-hidden', 'false');
   }
 
   function updateLoading(text) {
@@ -51,7 +53,9 @@
   }
 
   function hideLoading() {
+    loadingOverlay.classList.remove('is-visible');
     loadingOverlay.hidden = true;
+    loadingOverlay.setAttribute('aria-hidden', 'true');
   }
 
   async function callAnalyzeApi() {
@@ -166,4 +170,7 @@
       setAnalyzing(false);
     }
   });
+
+  // 双保险：页面初始化时强制隐藏 loading 遮罩
+  hideLoading();
 })();
