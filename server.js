@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   getConfig,
   analyzeArtwork,
@@ -9,7 +10,7 @@ import {
   buildFallbackAnalysis
 } from './lib/ai.js';
 
-const ROOT = process.cwd();
+const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const PORT = Number(process.env.PORT || 8081);
 
 function sendJson(res, statusCode, body) {
