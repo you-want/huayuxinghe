@@ -30,7 +30,9 @@ function getMime(filePath) {
 
 function safeResolve(pathname) {
   const normalizedPath = normalize(decodeURIComponent(pathname));
-  const relativePath = normalizedPath === '/' ? '/index.html' : normalizedPath;
+  const relativePath = normalizedPath === '/'
+    ? 'index.html'
+    : normalizedPath.replace(/^\/+/, '');
   const absPath = join(ROOT, relativePath);
   if (!absPath.startsWith(ROOT)) return null;
   return absPath;
