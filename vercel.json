@@ -1,6 +1,12 @@
 {
   "version": 2,
   "functions": {
+    "api/share/create.js": {
+      "maxDuration": 15
+    },
+    "api/share/[id].js": {
+      "maxDuration": 15
+    },
     "api/analyze.js": {
       "maxDuration": 60
     }

@@ -151,6 +151,22 @@ input[type="file"] {
   margin-top: 14px;
 }
 
+.share-hint {
+  margin-top: 6px;
+}
+
+.share-link-input {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  font-size: 14px;
+  color: var(--text);
+  background: #f8fbff;
+}
+
 .preview-card img {
   display: block;
   width: 100%;

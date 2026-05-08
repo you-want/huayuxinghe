@@ -10,6 +10,7 @@
 - AI 故事生成（儿童友好表达）
 - 父母/教师关怀建议（避免诊断和标签化）
 - 图片识别失败时自动降级，确保流程不中断
+- 支持分享链接（分享原图 + 分析结果）
 
 ## 技术栈
 
@@ -56,6 +57,8 @@ bun run dev
 
 - `GET /api/health`：健康检查
 - `POST /api/analyze`：提交图片分析
+- `POST /api/share/create`：创建分享链接
+- `GET /api/share/:id`：读取分享内容
 
 请求体示例：
 
@@ -79,8 +82,10 @@ bun run dev
   - `OPENAI_BASE_URL`
   - `MODEL_NAME`
   - `PROVIDER`（可选）
-  - `DAILY_LIMIT`（可选，默认 20）
+  - `DAILY_LIMIT`（可选，默认 10）
   - `MAX_CACHE_ENTRIES`（可选，默认 300）
+  - `SHARE_TTL_HOURS`（可选，默认 72）
+  - `SHARE_MAX_ENTRIES`（可选，默认 500）
 - 点击 Deploy，部署完成后访问域名即可
 
 > 注意：前端已内置图片压缩（最长边 1280）以降低请求体过大风险。

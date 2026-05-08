@@ -17,9 +17,14 @@
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingText = document.getElementById('loadingText');
   const quotaHint = document.getElementById('quotaHint');
+  const shareBtn = document.getElementById('shareBtn');
+  const sharePanel = document.getElementById('sharePanel');
+  const shareLinkInput = document.getElementById('shareLinkInput');
+  const copyShareBtn = document.getElementById('copyShareBtn');
 
   let currentImageDataUrl = '';
   let currentImageName = '';
+  let latestResult = null;
   const MAX_IMAGE_EDGE = 1280;
   const JPEG_QUALITY = 0.78;
 
@@ -108,8 +113,95 @@
     storyContent.textContent = story.content || '暂无';
     psychOverall.textContent = warning ? `${psych.overall_assessment || '暂无'}\n\n提示：${warning}` : (psych.overall_assessment || '暂无');
     psychAdvice.textContent = psych.teacher_advice || '暂无';
+    latestResult = { analysis, story, psych, warning };
+    if (sharePanel) sharePanel.hidden = true;
     resultCard.hidden = false;
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function createShareLink() {
+    if (!latestResult || !currentImageDataUrl) {
+      alert('请先完成一次分析后再分享');
+      return;
+    }
+
+    showLoading('正在生成分享链接...');
+    try {
+      const response = await fetch('/api/share/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageDataUrl: currentImageDataUrl,
+          artworkTitle: currentImageName || '孩子的画',
+          analysis: latestResult.analysis,
+          story: latestResult.story,
+          psych: latestResult.psych
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || `分享失败(${response.status})`);
+      }
+
+      shareLinkInput.value = data.shareUrl || '';
+      sharePanel.hidden = false;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: '画语星河 - 分享',
+            text: '我分享了一份画作解读，点开查看',
+            url: data.shareUrl
+          });
+        } catch (error) {
+          // 用户取消分享时静默处理
+        }
+      }
+    } finally {
+      hideLoading();
+    }
+  }
+
+  async function copyShareLink() {
+    const link = shareLinkInput.value.trim();
+    if (!link) {
+      alert('还没有可复制的链接');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      alert('分享链接已复制');
+    } catch (error) {
+      shareLinkInput.select();
+      document.execCommand('copy');
+      alert('分享链接已复制');
+    }
+  }
+
+  async function tryLoadSharedContent() {
+    const params = new URLSearchParams(window.location.search);
+    const shareId = params.get('share');
+    if (!shareId) return;
+
+    showLoading('正在加载分享内容...');
+    try {
+      const response = await fetch(`/api/share/${encodeURIComponent(shareId)}`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || '分享内容加载失败');
+      }
+
+      currentImageDataUrl = data.imageDataUrl;
+      currentImageName = data.artworkTitle || '分享画作';
+      previewImage.src = currentImageDataUrl;
+      imageInfo.textContent = `分享内容：${currentImageName}`;
+      previewCard.hidden = false;
+      renderResult(data.analysis, data.story, data.psych, '');
+      setStatus('当前为分享查看模式');
+    } catch (error) {
+      alert(`分享内容加载失败：${error.message}`);
+    } finally {
+      hideLoading();
+    }
   }
 
   async function compressImageToDataUrl(file) {
@@ -197,7 +289,15 @@
     }
   });
 
+  if (shareBtn) {
+    shareBtn.addEventListener('click', createShareLink);
+  }
+  if (copyShareBtn) {
+    copyShareBtn.addEventListener('click', copyShareLink);
+  }
+
   // 双保险：页面初始化时强制隐藏 loading 遮罩
   hideLoading();
   loadQuotaInfo();
+  tryLoadSharedContent();
 })();
