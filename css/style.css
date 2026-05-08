@@ -96,6 +96,10 @@ body {
   font-size: 14px;
 }
 
+.quota-hint {
+  margin-top: 8px;
+}
+
 .status-text {
   margin-top: 10px;
 }

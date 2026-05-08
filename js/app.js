@@ -16,6 +16,7 @@
   const psychAdvice = document.getElementById('psychAdvice');
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingText = document.getElementById('loadingText');
+  const quotaHint = document.getElementById('quotaHint');
 
   let currentImageDataUrl = '';
   let currentImageName = '';
@@ -34,6 +35,15 @@
 
   function setStatus(text) {
     statusText.textContent = text || '';
+  }
+
+  function renderQuota(quota) {
+    if (!quotaHint) return;
+    if (!quota) {
+      quotaHint.textContent = '今日剩余额度：--';
+      return;
+    }
+    quotaHint.textContent = `今日剩余额度：${quota.remaining}/${quota.limit}`;
   }
 
   function setAnalyzing(isAnalyzing) {
@@ -70,10 +80,26 @@
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.success) {
+      if (data?.quota) renderQuota(data.quota);
       const message = data.error || `请求失败(${response.status})`;
       throw new Error(message);
     }
+    if (data?.quota) renderQuota(data.quota);
     return data;
+  }
+
+  async function loadQuotaInfo() {
+    try {
+      const response = await fetch('/api/health');
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.success && data.quota) {
+        renderQuota(data.quota);
+      } else {
+        renderQuota(null);
+      }
+    } catch (error) {
+      renderQuota(null);
+    }
   }
 
   function renderResult(analysis, story, psych, warning = '') {
@@ -173,4 +199,5 @@
 
   // 双保险：页面初始化时强制隐藏 loading 遮罩
   hideLoading();
+  loadQuotaInfo();
 })();

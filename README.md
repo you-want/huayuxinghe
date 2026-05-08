@@ -79,6 +79,8 @@ bun run dev
   - `OPENAI_BASE_URL`
   - `MODEL_NAME`
   - `PROVIDER`（可选）
+  - `DAILY_LIMIT`（可选，默认 20）
+  - `MAX_CACHE_ENTRIES`（可选，默认 300）
 - 点击 Deploy，部署完成后访问域名即可
 
 > 注意：前端已内置图片压缩（最长边 1280）以降低请求体过大风险。
