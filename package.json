@@ -6,8 +6,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "bun ./local-server.js",
-    "start": "bun ./local-server.js"
+    "dev": "bun ./server.js",
+    "start": "bun ./server.js"
   },
   "engines": {
     "bun": ">=1.0.0"
