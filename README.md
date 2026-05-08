@@ -87,7 +87,7 @@ bun run dev
 
 ```bash
 git clone <你的仓库地址>
-cd xinsheng-shiguang
+cd huayuxinghe
 cp .env.example .env
 # 编辑 .env
 bun run start
@@ -104,7 +104,7 @@ bun run start
 ## 项目结构
 
 ```text
-xinsheng-shiguang/
+huayuxinghe/
 ├── index.html
 ├── css/
 │   └── style.css
@@ -115,7 +115,7 @@ xinsheng-shiguang/
 │   └── health.js
 ├── lib/
 │   └── ai.js
-├── server.js            # 本地 Bun 调试服务（可选）
+├── local-server.js      # 本地 Bun 调试服务（可选）
 ├── vercel.json
 ├── .env.example
 ├── .gitignore
