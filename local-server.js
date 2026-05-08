@@ -166,7 +166,9 @@ function getMime(filePath) {
 
 function resolveStaticFile(pathname) {
   const normalizedPath = normalize(decodeURIComponent(pathname));
-  const relativePath = normalizedPath === '/' ? '/index.html' : normalizedPath;
+  const relativePath = normalizedPath === '/'
+    ? 'index.html'
+    : normalizedPath.replace(/^\/+/, '');
   const absPath = join(ROOT, relativePath);
   if (!absPath.startsWith(ROOT)) {
     return null;
