@@ -15,6 +15,7 @@
   const psychOverall = document.getElementById('psychOverall');
   const psychAdvice = document.getElementById('psychAdvice');
   const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingTitle = document.getElementById('loadingTitle');
   const loadingText = document.getElementById('loadingText');
   const quotaHint = document.getElementById('quotaHint');
   const shareBtn = document.getElementById('shareBtn');
@@ -56,7 +57,8 @@
     analyzeBtn.textContent = isAnalyzing ? 'AI 分析中，请稍候...' : '开始智能解读';
   }
 
-  function showLoading(text = '正在准备分析...') {
+  function showLoading(text = '正在准备分析...', title = '处理中，请稍候') {
+    if (loadingTitle) loadingTitle.textContent = title;
     loadingText.textContent = text;
     loadingOverlay.classList.add('is-visible');
     loadingOverlay.hidden = false;
@@ -71,6 +73,56 @@
     loadingOverlay.classList.remove('is-visible');
     loadingOverlay.hidden = true;
     loadingOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function bytesToBase64Url(bytes) {
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
+  function base64UrlToBytes(base64Url) {
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+    const binary = atob(base64 + padding);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  function encodeSharePayload(payload) {
+    const json = JSON.stringify(payload);
+    const bytes = new TextEncoder().encode(json);
+    return bytesToBase64Url(bytes);
+  }
+
+  function decodeSharePayload(token) {
+    const bytes = base64UrlToBytes(token);
+    const json = new TextDecoder().decode(bytes);
+    return JSON.parse(json);
+  }
+
+  function loadImageFromDataUrl(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('图片加载失败'));
+      img.src = dataUrl;
+    });
+  }
+
+  async function buildShareImageDataUrl(sourceDataUrl) {
+    const img = await loadImageFromDataUrl(sourceDataUrl);
+    const maxEdge = 720;
+    const ratio = Math.min(1, maxEdge / Math.max(img.width, img.height));
+    const targetW = Math.max(1, Math.round(img.width * ratio));
+    const targetH = Math.max(1, Math.round(img.height * ratio));
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, targetW, targetH);
+    return canvas.toDataURL('image/jpeg', 0.72);
   }
 
   async function callAnalyzeApi() {
@@ -125,32 +177,27 @@
       return;
     }
 
-    showLoading('正在生成分享链接...');
+    showLoading('正在生成分享链接...', '正在分享，请稍候');
     try {
-      const response = await fetch('/api/share/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageDataUrl: currentImageDataUrl,
-          artworkTitle: currentImageName || '孩子的画',
-          analysis: latestResult.analysis,
-          story: latestResult.story,
-          psych: latestResult.psych
-        })
+      const shareImageDataUrl = await buildShareImageDataUrl(currentImageDataUrl);
+      const token = encodeSharePayload({
+        v: 1,
+        artworkTitle: currentImageName || '孩子的画',
+        imageDataUrl: shareImageDataUrl,
+        analysis: latestResult.analysis,
+        story: latestResult.story,
+        psych: latestResult.psych,
+        createdAt: Date.now()
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || `分享失败(${response.status})`);
-      }
-
-      shareLinkInput.value = data.shareUrl || '';
+      const shareUrl = `${window.location.origin}${window.location.pathname}?shareData=${encodeURIComponent(token)}`;
+      shareLinkInput.value = shareUrl;
       sharePanel.hidden = false;
       if (navigator.share) {
         try {
           await navigator.share({
             title: '画语星河 - 分享',
             text: '我分享了一份画作解读，点开查看',
-            url: data.shareUrl
+            url: shareUrl
           });
         } catch (error) {
           // 用户取消分享时静默处理
@@ -179,11 +226,24 @@
 
   async function tryLoadSharedContent() {
     const params = new URLSearchParams(window.location.search);
+    const shareData = params.get('shareData');
     const shareId = params.get('share');
-    if (!shareId) return;
+    if (!shareData && !shareId) return;
 
-    showLoading('正在加载分享内容...');
+    showLoading('正在加载分享内容...', '正在打开分享内容');
     try {
+      if (shareData) {
+        const decoded = decodeSharePayload(shareData);
+        currentImageDataUrl = decoded.imageDataUrl;
+        currentImageName = decoded.artworkTitle || '分享画作';
+        previewImage.src = currentImageDataUrl;
+        imageInfo.textContent = `分享内容：${currentImageName}`;
+        previewCard.hidden = false;
+        renderResult(decoded.analysis, decoded.story, decoded.psych, '');
+        setStatus('当前为分享查看模式');
+        return;
+      }
+
       const response = await fetch(`/api/share/${encodeURIComponent(shareId)}`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success) {
@@ -238,7 +298,7 @@
     }
 
     try {
-      showLoading('正在优化图片大小...');
+      showLoading('正在优化图片大小...', '图片处理中');
       const compressedDataUrl = await compressImageToDataUrl(file);
       currentImageDataUrl = compressedDataUrl;
       currentImageName = file.name || '未命名画作';
@@ -272,7 +332,7 @@
 
     try {
       setAnalyzing(true);
-      showLoading('正在分析画作内容...');
+      showLoading('正在分析画作内容...', 'AI 分析中，请稍候');
       setStatus('AI 正在分析画作并生成故事，请稍候...');
       updateLoading('第一步：正在分析画作内容...');
       const result = await callAnalyzeApi();
