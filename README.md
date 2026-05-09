@@ -88,6 +88,7 @@ bun run dev
   - `SHARE_TTL_HOURS`（可选，默认 72）
   - `SHARE_MAX_ENTRIES`（可选，默认 500）
   - `SHARE_USE_BLOB`（可选，默认 true）
+  - `BLOB_ACCESS`（可选，默认 public；若报 `access must be "public"`，请显式设为 `public`）
   - `BLOB_READ_WRITE_TOKEN`（建议配置，用于稳定分享存储）
 - 点击 Deploy，部署完成后访问域名即可
 
