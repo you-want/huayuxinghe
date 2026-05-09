@@ -151,6 +151,7 @@
     }
 
     showLoading('正在生成分享链接...', '正在分享，请稍候');
+    if (shareBtn) shareBtn.disabled = true;
     try {
       const shareImageDataUrl = await buildShareImageDataUrl(currentImageDataUrl);
       const response = await fetch('/api/share/create', {
@@ -169,8 +170,13 @@
         throw new Error(data.error || `分享失败(${response.status})`);
       }
       const shareUrl = data.shareUrl || '';
+      if (!shareUrl) {
+        throw new Error('分享链接生成失败，请稍后重试');
+      }
       shareLinkInput.value = shareUrl;
       sharePanel.hidden = false;
+      setStatus('分享链接已生成，可复制发送给他人');
+      sharePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       if (navigator.share) {
         try {
           await navigator.share({
@@ -182,8 +188,12 @@
           // 用户取消分享时静默处理
         }
       }
+    } catch (error) {
+      console.error(error);
+      alert(`分享失败：${error.message}`);
     } finally {
       hideLoading();
+      if (shareBtn) shareBtn.disabled = false;
     }
   }
 
