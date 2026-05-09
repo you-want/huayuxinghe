@@ -1,4 +1,4 @@
-import { createShare } from '../../lib/share-store.js';
+import { createShare, SHARE_PERSISTENT_READY } from '../../lib/share-store.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -7,6 +7,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (process.env.VERCEL && !SHARE_PERSISTENT_READY) {
+      res.status(503).json({
+        success: false,
+        error: '分享存储未配置：请在 Vercel 配置 BLOB_READ_WRITE_TOKEN'
+      });
+      return;
+    }
+
     const body = req.body || {};
     const imageDataUrl = body.imageDataUrl || '';
     const artworkTitle = body.artworkTitle || '孩子的画';
@@ -23,7 +31,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const created = createShare({
+    const created = await createShare({
       imageDataUrl,
       artworkTitle,
       analysis,

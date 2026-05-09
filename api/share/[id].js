@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const data = getShare(shareId);
+    const data = await getShare(shareId);
     if (!data) {
       res.status(404).json({ success: false, error: '分享内容不存在或已过期' });
       return;

@@ -86,10 +86,13 @@ bun run dev
   - `MAX_CACHE_ENTRIES`（可选，默认 300）
   - `SHARE_TTL_HOURS`（可选，默认 72）
   - `SHARE_MAX_ENTRIES`（可选，默认 500）
+  - `SHARE_USE_BLOB`（可选，默认 true）
+  - `BLOB_READ_WRITE_TOKEN`（建议配置，用于稳定分享存储）
 - 点击 Deploy，部署完成后访问域名即可
 
 > 注意：前端已内置图片压缩（最长边 1280）以降低请求体过大风险。
 > 线上部署不使用 `server.js`，只使用静态页面 + `api/*` Serverless Functions。
+> 建议启用 Vercel Blob（`BLOB_READ_WRITE_TOKEN`），避免 Serverless 实例切换导致分享失效。
 
 ### 方案 B：本地 / 自有服务器（Bun）
 
@@ -120,9 +123,14 @@ huayuxinghe/
 │   └── app.js
 ├── api/
 │   ├── analyze.js
-│   └── health.js
+│   ├── health.js
+│   └── share/
+│       ├── create.js
+│       └── [id].js
 ├── lib/
-│   └── ai.js
+│   ├── ai.js
+│   ├── runtime-control.js
+│   └── share-store.js
 ├── local-server.js      # 本地 Bun 调试服务（仅本地）
 ├── vercel.json
 ├── .env.example

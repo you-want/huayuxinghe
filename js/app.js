@@ -75,33 +75,6 @@
     loadingOverlay.setAttribute('aria-hidden', 'true');
   }
 
-  function bytesToBase64Url(bytes) {
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-  }
-
-  function base64UrlToBytes(base64Url) {
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-    const binary = atob(base64 + padding);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return bytes;
-  }
-
-  function encodeSharePayload(payload) {
-    const json = JSON.stringify(payload);
-    const bytes = new TextEncoder().encode(json);
-    return bytesToBase64Url(bytes);
-  }
-
-  function decodeSharePayload(token) {
-    const bytes = base64UrlToBytes(token);
-    const json = new TextDecoder().decode(bytes);
-    return JSON.parse(json);
-  }
-
   function loadImageFromDataUrl(dataUrl) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -180,16 +153,22 @@
     showLoading('正在生成分享链接...', '正在分享，请稍候');
     try {
       const shareImageDataUrl = await buildShareImageDataUrl(currentImageDataUrl);
-      const token = encodeSharePayload({
-        v: 1,
-        artworkTitle: currentImageName || '孩子的画',
-        imageDataUrl: shareImageDataUrl,
-        analysis: latestResult.analysis,
-        story: latestResult.story,
-        psych: latestResult.psych,
-        createdAt: Date.now()
+      const response = await fetch('/api/share/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageDataUrl: shareImageDataUrl,
+          artworkTitle: currentImageName || '孩子的画',
+          analysis: latestResult.analysis,
+          story: latestResult.story,
+          psych: latestResult.psych
+        })
       });
-      const shareUrl = `${window.location.origin}${window.location.pathname}?shareData=${encodeURIComponent(token)}`;
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || `分享失败(${response.status})`);
+      }
+      const shareUrl = data.shareUrl || '';
       shareLinkInput.value = shareUrl;
       sharePanel.hidden = false;
       if (navigator.share) {
@@ -226,24 +205,11 @@
 
   async function tryLoadSharedContent() {
     const params = new URLSearchParams(window.location.search);
-    const shareData = params.get('shareData');
     const shareId = params.get('share');
-    if (!shareData && !shareId) return;
+    if (!shareId) return;
 
     showLoading('正在加载分享内容...', '正在打开分享内容');
     try {
-      if (shareData) {
-        const decoded = decodeSharePayload(shareData);
-        currentImageDataUrl = decoded.imageDataUrl;
-        currentImageName = decoded.artworkTitle || '分享画作';
-        previewImage.src = currentImageDataUrl;
-        imageInfo.textContent = `分享内容：${currentImageName}`;
-        previewCard.hidden = false;
-        renderResult(decoded.analysis, decoded.story, decoded.psych, '');
-        setStatus('当前为分享查看模式');
-        return;
-      }
-
       const response = await fetch(`/api/share/${encodeURIComponent(shareId)}`);
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success) {

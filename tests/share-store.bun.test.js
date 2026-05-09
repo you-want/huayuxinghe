@@ -10,7 +10,7 @@ describe('share-store (bun)', () => {
     resetShareStoreForTest();
   });
 
-  test('createShare 后可 getShare 读取', () => {
+  test('createShare 后可 getShare 读取', async () => {
     const payload = {
       imageDataUrl: 'data:image/jpeg;base64,abc',
       artworkTitle: '测试画作',
@@ -19,17 +19,17 @@ describe('share-store (bun)', () => {
       psych: { overall_assessment: '评估', teacher_advice: '建议' }
     };
 
-    const created = createShare(payload);
+    const created = await createShare(payload);
     expect(created.id.length).toBeGreaterThan(6);
 
-    const hit = getShare(created.id);
+    const hit = await getShare(created.id);
     expect(hit).not.toBeNull();
     expect(hit.artworkTitle).toBe('测试画作');
     expect(hit.story.title).toBe('故事');
   });
 
-  test('不存在的分享 id 返回 null', () => {
-    const hit = getShare('not-exists-id');
+  test('不存在的分享 id 返回 null', async () => {
+    const hit = await getShare('not-exists-id');
     expect(hit).toBeNull();
   });
 });
