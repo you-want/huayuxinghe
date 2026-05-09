@@ -40,17 +40,17 @@ describe('runtime-control (bun)', () => {
     expect(hit.analysis.description).toBe('ok');
   });
 
-  test('限流：同 IP 每日额度用尽后拒绝', () => {
+  test('限流：同 IP 每日额度用尽后拒绝', async () => {
     const ip = '8.8.8.8';
     for (let i = 0; i < DAILY_LIMIT; i++) {
-      const result = consumeQuota(ip);
+      const result = await consumeQuota(ip);
       expect(result.allowed).toBe(true);
     }
-    const denied = consumeQuota(ip);
+    const denied = await consumeQuota(ip);
     expect(denied.allowed).toBe(false);
     expect(denied.quota.remaining).toBe(0);
 
-    const info = getQuotaInfo(ip);
+    const info = await getQuotaInfo(ip);
     expect(info.used).toBe(DAILY_LIMIT);
     expect(info.remaining).toBe(0);
   });

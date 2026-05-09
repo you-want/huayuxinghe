@@ -84,6 +84,7 @@ bun run dev
   - `PROVIDER`（可选）
   - `DAILY_LIMIT`（可选，默认 10）
   - `MAX_CACHE_ENTRIES`（可选，默认 300）
+  - `QUOTA_USE_BLOB`（可选，默认 true，建议开启）
   - `SHARE_TTL_HOURS`（可选，默认 72）
   - `SHARE_MAX_ENTRIES`（可选，默认 500）
   - `SHARE_USE_BLOB`（可选，默认 true）

@@ -44,12 +44,12 @@ export default async function handler(req, res) {
         psych: cached.psych,
         warning: cached.warning || '',
         cacheHit: true,
-        quota: getQuotaInfo(clientIp)
+        quota: await getQuotaInfo(clientIp)
       });
       return;
     }
 
-    const quotaConsume = consumeQuota(clientIp);
+    const quotaConsume = await consumeQuota(clientIp);
     if (!quotaConsume.allowed) {
       res.status(429).json({
         success: false,

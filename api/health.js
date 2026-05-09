@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   const config = getConfig();
   const clientIp = getClientIp(req);
-  const quota = getQuotaInfo(clientIp);
+  const quota = await getQuotaInfo(clientIp);
   if (req.method === 'HEAD') {
     res.status(200).end();
     return;
