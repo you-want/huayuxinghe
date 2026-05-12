@@ -1,5 +1,7 @@
 # 画语星河 (huayuxinghe)
 
+> “因为看不懂小棉袄的画，我写了个 AI 程序帮我翻译她的世界”
+
 一个面向儿童绘画场景的 AI H5 工具：拍照上传画作，自动生成画面观察、故事文本与父母或教师关怀建议。  
 项目基于 **静态前端 + Vercel Serverless API + OpenAI Compatible API**，可独立部署、可开源发布。
 
@@ -88,18 +90,17 @@ bun run dev
   - `SHARE_TTL_HOURS`（可选，默认 72）
   - `SHARE_MAX_ENTRIES`（可选，默认 500）
   - `SHARE_USE_BLOB`（可选，默认 true）
-  - `BLOB_ACCESS`（可选，默认 public；若报 `access must be "public"`，请显式设为 `public`）
   - `BLOB_READ_WRITE_TOKEN`（建议配置，用于稳定分享存储）
 - 点击 Deploy，部署完成后访问域名即可
 
 > 注意：前端已内置图片压缩（最长边 1280）以降低请求体过大风险。
 > 线上部署不使用 `server.js`，只使用静态页面 + `api/*` Serverless Functions。
-> 建议启用 Vercel Blob（`BLOB_READ_WRITE_TOKEN`），避免 Serverless 实例切换导致分享失效。
+> 建议启用 Vercel Blob（配置 `BLOB_READ_WRITE_TOKEN`），避免 Serverless 实例切换导致分享失效。注意：请确保创建的 Vercel Blob Store 权限为 **Public（公开）**。
 
 ### 方案 B：本地 / 自有服务器（Bun）
 
 ```bash
-git clone <你的仓库地址>
+git clone https://github.com/you-want/huayuxinghe.git
 cd huayuxinghe
 cp .env.example .env
 # 编辑 .env
